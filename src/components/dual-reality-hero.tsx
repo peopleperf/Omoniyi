@@ -230,13 +230,24 @@ export default function DualRealityHero({ onScrollToProjects }: { onScrollToProj
   const [activeSection, setActiveSection] = useState<'tech' | 'hr' | 'both'>('both');
   const [isLoaded, setIsLoaded] = useState(false);
   const [hoveredSide, setHoveredSide] = useState<'left' | 'right' | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const mouseXMotion = useMotionValue(0.5);
   const { theme, systemTheme } = useTheme();
   const currentTheme = theme === 'system' ? systemTheme : theme;
   const isLight = currentTheme === 'light';
 
   useEffect(() => {
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
     const handleMouseMove = (e: MouseEvent) => {
+      if (isMobile) return; // Disable mouse tracking on mobile
+      
       const x = e.clientX / window.innerWidth;
       setMouseX(x);
       mouseXMotion.set(x);
@@ -256,8 +267,11 @@ export default function DualRealityHero({ onScrollToProjects }: { onScrollToProj
     // Set loaded after delay
     setTimeout(() => setIsLoaded(true), 500);
 
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, [isMobile]);
 
   // Smoother width transitions
   const leftWidth = useTransform(
